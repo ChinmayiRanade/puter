@@ -37,6 +37,10 @@ export default {
         h += `<div style="overflow: hidden; display: flex; margin-bottom: 20px; flex-direction: column; align-items: center;">`;
             h += `<div class="profile-picture change-profile-picture" style="background-image: url('${html_encode(window.user?.profile?.picture ?? window.icons['profile.svg'])}');">`;
             h += `</div>`;
+            // Add remove button if user has a custom profile picture
+            if (window.user?.profile?.picture) {
+                h += `<button class="button button-danger remove-profile-picture" style="margin-top: 10px; font-size: 12px;">${i18n('remove_profile_picture')}</button>`;
+            }
         h += `</div>`;
 
         // change password button
@@ -150,6 +154,26 @@ export default {
             });    
         })
 
+        $el_window.find('.remove-profile-picture').on('click', async function (e) {
+            e.preventDefault();
+            
+            // Confirm the action
+            if (!confirm(i18n('confirm_remove_profile_picture'))) {
+                return;
+            }
+            
+            // Remove the profile picture by setting it to null
+            update_profile(window.user.username, {picture: null});
+            
+            // Update the UI immediately
+            $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(window.icons['profile.svg']) + ')');
+            $('.profile-image').css('background-image', 'url(' + html_encode(window.icons['profile.svg']) + ')');
+            $('.profile-image').removeClass('profile-image-has-picture');
+            
+            // Remove the remove button since there's no custom picture anymore
+            $el_window.find('.remove-profile-picture').remove();
+        })
+
         $el_window.on('file_opened', async function(e){
             let selected_file = Array.isArray(e.detail) ? e.detail[0] : e.detail;
             // set profile picture
@@ -172,6 +196,33 @@ export default {
                     $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(base64data) + ')');
                     $('.profile-image').css('background-image', 'url(' + html_encode(base64data) + ')');
                     $('.profile-image').addClass('profile-image-has-picture');
+                    
+                    // Add remove button if it doesn't exist
+                    if (!$el_window.find('.remove-profile-picture').length) {
+                        $el_window.find('.profile-picture').parent().append(`<button class="button button-danger remove-profile-picture" style="margin-top: 10px; font-size: 12px;">${i18n('remove_profile_picture')}</button>`);
+                        
+                        // Re-bind the event handler for the new button
+                        $el_window.find('.remove-profile-picture').on('click', async function (e) {
+                            e.preventDefault();
+                            
+                            // Confirm the action
+                            if (!confirm(i18n('confirm_remove_profile_picture'))) {
+                                return;
+                            }
+                            
+                            // Remove the profile picture by setting it to null
+                            update_profile(window.user.username, {picture: null});
+                            
+                            // Update the UI immediately
+                            $el_window.find('.profile-picture').css('background-image', 'url(' + html_encode(window.icons['profile.svg']) + ')');
+                            $('.profile-image').css('background-image', 'url(' + html_encode(window.icons['profile.svg']) + ')');
+                            $('.profile-image').removeClass('profile-image-has-picture');
+                            
+                            // Remove the remove button since there's no custom picture anymore
+                            $el_window.find('.remove-profile-picture').remove();
+                        });
+                    }
+                    
                     // update profile picture
                     update_profile(window.user.username, {picture: base64data})
                 }
