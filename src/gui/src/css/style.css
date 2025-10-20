@@ -409,10 +409,6 @@ input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, sel
     opacity: 0.7
 }
 
-/* Hide all desktop icons when this class is applied to desktop container */
-.desktop.desktop-hide-icons > .item {
-    display: none;
-}
 
 .item-container-list .item {
     height: initial;
