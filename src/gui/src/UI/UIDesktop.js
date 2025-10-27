@@ -42,6 +42,7 @@ import UIWindowWelcome from "./UIWindowWelcome.js"
 import launch_app from "../helpers/launch_app.js"
 import item_icon from "../helpers/item_icon.js"
 import UIWindowSearch from "./UIWindowSearch.js"
+import update_mouse_position from "../helpers/update_mouse_position.js"
 
 async function UIDesktop(options){
     let h = '';
@@ -1894,7 +1895,8 @@ window.init_toolbar_auto_hide = ()=>{
     window.reset_toolbar_hide_timer();
     
     // Reset timer on any mouse movement
-    $(document).on('mousemove.toolbar_autohide', function(){
+    $(document).on('mousemove.toolbar_autohide', function(event){
+        update_mouse_position(event.clientX, event.clientY);
         window.reset_toolbar_hide_timer();
     });
     
