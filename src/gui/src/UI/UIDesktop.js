@@ -42,6 +42,7 @@ import UIWindowWelcome from "./UIWindowWelcome.js"
 import launch_app from "../helpers/launch_app.js"
 import item_icon from "../helpers/item_icon.js"
 import UIWindowSearch from "./UIWindowSearch.js"
+import update_mouse_position from "../helpers/update_mouse_position.js"
 
 async function UIDesktop(options){
     let h = '';
@@ -1151,6 +1152,9 @@ async function UIDesktop(options){
     // adjust window container to take into account the toolbar height
     $('.window-container').css('top', window.toolbar_height);
 
+    // Initialize toolbar auto-hide behavior
+    window.init_toolbar_auto_hide();
+
     // track: checkpoint
     //-----------------------------
     // GUI is ready to launch apps!
@@ -1821,6 +1825,93 @@ window.reset_window_size_and_position = (el_window)=>{
         'border-radius': window.window_border_radius,
         top: 'calc(50% - 190px)',
         left: 'calc(50% - 340px)',
+    });
+}
+
+/**
+ * Hides the toolbar with animation
+ */
+window.hide_toolbar = ()=>{
+    if(!window.toolbar_auto_hide_enabled || window.toolbar_is_hidden)
+        return;
+    
+    $('.toolbar').addClass('toolbar-hidden');
+    window.toolbar_is_hidden = true;
+}
+
+/**
+ * Shows the toolbar with animation
+ */
+window.show_toolbar = ()=>{
+    if(!window.toolbar_auto_hide_enabled)
+        return;
+    
+    $('.toolbar').removeClass('toolbar-hidden');
+    window.toolbar_is_hidden = false;
+}
+
+/**
+ * Resets the toolbar auto-hide timer
+ */
+window.reset_toolbar_hide_timer = ()=>{
+    if(!window.toolbar_auto_hide_enabled)
+        return;
+    
+    // Clear existing timeout
+    if(window.toolbar_hide_timeout){
+        clearTimeout(window.toolbar_hide_timeout);
+        window.toolbar_hide_timeout = null;
+    }
+    
+    // Show toolbar if mouse is near it
+    if(window.mouse_near_toolbar){
+        window.show_toolbar();
+        return;
+    }
+    
+    // If toolbar is hidden and mouse is not near it, keep it hidden
+    if(window.toolbar_is_hidden && !window.mouse_near_toolbar){
+        return;
+    }
+    
+    // Show toolbar and set timer to hide it
+    window.show_toolbar();
+    window.toolbar_hide_timeout = setTimeout(()=>{
+        // Only hide if mouse is not near toolbar
+        if(!window.mouse_near_toolbar){
+            window.hide_toolbar();
+        }
+    }, window.toolbar_hide_delay);
+}
+
+/**
+ * Initializes toolbar auto-hide behavior
+ */
+window.init_toolbar_auto_hide = ()=>{
+    if(!window.toolbar_auto_hide_enabled)
+        return;
+    
+    // Start the initial hide timer
+    window.reset_toolbar_hide_timer();
+    
+    // Reset timer on any mouse movement
+    $(document).on('mousemove.toolbar_autohide', function(event){
+        update_mouse_position(event.clientX, event.clientY);
+        window.reset_toolbar_hide_timer();
+    });
+    
+    // Keep toolbar visible when hovering over it
+    $('.toolbar').on('mouseenter', function(){
+        window.show_toolbar();
+        if(window.toolbar_hide_timeout){
+            clearTimeout(window.toolbar_hide_timeout);
+            window.toolbar_hide_timeout = null;
+        }
+    });
+    
+    // Restart hide timer when leaving toolbar
+    $('.toolbar').on('mouseleave', function(){
+        window.reset_toolbar_hide_timer();
     });
 }
   

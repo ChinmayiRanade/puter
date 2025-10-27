@@ -106,6 +106,14 @@ window.window_stack = []
 window.toolbar_height = 30;
 window.default_taskbar_height = 50;
 window.taskbar_height = window.default_taskbar_height;
+
+// Toolbar auto-hide state
+window.toolbar_auto_hide_enabled = true; // Enable auto-hide by default
+window.toolbar_hide_timeout = null; // Timer for hiding the toolbar
+window.toolbar_is_hidden = false; // Current visibility state
+window.toolbar_hide_delay = 2000; // 2 seconds of inactivity before hiding
+window.toolbar_hover_threshold = 50; // Mouse proximity threshold in pixels
+window.mouse_near_toolbar = false; // Is mouse currently near the toolbar?
 window.upload_progress_hide_delay = 500;
 window.active_uploads = {};
 window.copy_progress_hide_delay = 1000;
