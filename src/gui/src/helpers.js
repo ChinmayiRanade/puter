@@ -535,6 +535,18 @@ window.mutate_user_preferences = function(user_preferences_delta) {
     }
     // There may be syncing issues across multiple devices
     window.update_user_preferences({ ...window.user_preferences, ...user_preferences_delta });
+
+    // Notify other GUI tabs/windows in the same browser via BroadcastChannel (if available)
+    try{
+        if(window.channel && typeof window.channel.postMessage === 'function'){
+            window.channel.postMessage({
+                type: 'user_preferences_changed',
+                delta: user_preferences_delta,
+            });
+        }
+    }catch(err){
+        // ignore
+    }
 }
 
 window.update_user_preferences = function(user_preferences) {

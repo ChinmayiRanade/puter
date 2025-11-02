@@ -228,6 +228,22 @@ const refresh_item_container = function(el_item_container, options){
                 $(el_item_container).attr('data-sort_order')
             );
 
+            // Apply desktop-hide preference: if this container is the desktop and the user prefers icons hidden,
+            // hide item elements while keeping them in the DOM so positions are preserved.
+            try{
+                if($(el_item_container).hasClass('desktop')){
+                    if(window.user_preferences && window.user_preferences.hide_desktop_icons){
+                        $(el_item_container).find('.item').hide();
+                        $(el_item_container).addClass('desktop-icons-hidden');
+                    }else{
+                        $(el_item_container).find('.item').show();
+                        $(el_item_container).removeClass('desktop-icons-hidden');
+                    }
+                }
+            }catch(err){
+                console.warn('Error applying hide_desktop_icons preference', err);
+            }
+
             if(options.fadeInItems)
                 $(el_item_container).animate({'opacity': '1'});
 

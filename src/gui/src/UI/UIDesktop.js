@@ -48,8 +48,6 @@ async function UIDesktop(options){
 
     // Set up the desktop channel for communication between different tabs in the same browser
     window.channel = new BroadcastChannel('puter-desktop-channel');
-    channel.onmessage = function(e){
-    }
 
 
     // Give Camera and Recorder write permissions to Desktop
@@ -736,6 +734,30 @@ async function UIDesktop(options){
 
     window.active_element = el_desktop;
     window.active_item_container = el_desktop;
+    // Listen for preference changes from other tabs/windows and apply hide/show desktop icons
+    if(window.channel){
+        window.channel.onmessage = function(e){
+            try{
+                const data = e.data;
+                if(!data) return;
+                if(data.type === 'user_preferences_changed'){
+                    const delta = data.delta || {};
+                    if(Object.prototype.hasOwnProperty.call(delta, 'hide_desktop_icons')){
+                        const newVal = !!delta.hide_desktop_icons;
+                        if(newVal){
+                            $(el_desktop).find('.item').hide();
+                            $(el_desktop).addClass('desktop-icons-hidden');
+                        }else{
+                            $(el_desktop).find('.item').show();
+                            $(el_desktop).removeClass('desktop-icons-hidden');
+                        }
+                    }
+                }
+            }catch(err){
+                console.warn('Failed to process channel message', err);
+            }
+        }
+    }
     // --------------------------------------------------------
     // Dragster
     // Allow dragging of local files onto desktop.
@@ -944,6 +966,30 @@ async function UIDesktop(options){
                         }
                     },
                     // -------------------------------------------
+                    // Show/Hide Desktop Icons
+                    // -------------------------------------------
+                    {
+                        html: window.user_preferences.hide_desktop_icons ? 'Show Desktop Icons' : 'Hide Desktop Icons',
+                        icon: window.user_preferences.hide_desktop_icons ? '' : '',
+                        onClick: function(){
+                            const newVal = !window.user_preferences.hide_desktop_icons;
+                            // persist preference
+                            window.mutate_user_preferences({
+                                hide_desktop_icons: newVal,
+                            });
+
+                            // apply immediately without changing positions
+                            if(newVal){
+                                // hide item elements but keep them in DOM so positions are preserved
+                                $(el_desktop).find('.item').hide();
+                                $(el_desktop).addClass('desktop-icons-hidden');
+                            }else{
+                                $(el_desktop).find('.item').show();
+                                $(el_desktop).removeClass('desktop-icons-hidden');
+                            }
+                        }
+                    },
+                    // -------------------------------------------
                     // -
                     // -------------------------------------------
                     '-',
@@ -1013,6 +1059,17 @@ async function UIDesktop(options){
     //-------------------------------------------
     if(!window.is_embedded && !window.is_fullpage_mode){
         refresh_item_container(el_desktop, {fadeInItems: true})
+
+        // Apply saved preference to hide desktop icons (preserve positions)
+        try{
+            if(window.user_preferences && window.user_preferences.hide_desktop_icons){
+                // hide item elements but keep them in DOM so positions are preserved
+                $(el_desktop).find('.item').hide();
+                $(el_desktop).addClass('desktop-icons-hidden');
+            }
+        }catch(err){
+            console.warn('Failed to apply hide_desktop_icons preference', err);
+        }
 
         // Show welcome window if user hasn't already seen it and hasn't directly navigated to an app 
         if(!window.url_paths[0]?.toLocaleLowerCase() === 'app' || !window.url_paths[1]){
