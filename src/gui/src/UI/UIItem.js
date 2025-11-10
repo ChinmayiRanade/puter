@@ -1196,7 +1196,23 @@ function UIItem(options){
                             try{
                                 // Request a signed read URL for this file and set it as desktop background
                                 const sig = await puter.fs.sign(window.host_app_uid ?? null, { uid: options.uid, action: 'read' });
-                                const url = sig?.read_url ?? sig?.url;
+                                // puter.fs.sign can return different shapes:
+                                // - a single signature object with read_url/readURL/url
+                                // - an object with `items` array containing signature objects
+                                // Normalize to pick the first available read URL.
+                                let url = undefined;
+                                try{
+                                    if(sig){
+                                        if(sig.items){
+                                            const first = Array.isArray(sig.items) ? sig.items[0] : sig.items;
+                                            url = first?.read_url ?? first?.readURL ?? first?.url ?? first?.readUrl;
+                                        } else {
+                                            url = sig?.read_url ?? sig?.readURL ?? sig?.url ?? sig?.readUrl;
+                                        }
+                                    }
+                                }catch(e){
+                                    console.warn('Unexpected signature shape', e, sig);
+                                }
                                 if(url){
                                     // Immediately update the UI
                                     window.set_desktop_background({ url: url, fit: 'cover' });
