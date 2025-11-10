@@ -1184,6 +1184,53 @@ function UIItem(options){
                 });                
             }
             // -------------------------------------------
+            // Set as Desktop Background (images only)
+            // -------------------------------------------
+            try {
+                const ext = path.extname($(el_item).attr('data-path')).toLowerCase();
+                const image_exts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+                if(!is_trash && !is_trashed && image_exts.includes(ext)){
+                    menu_items.push({
+                        html: i18n('set_as_desktop_background'),
+                        onClick: async function(){
+                            try{
+                                // Request a signed read URL for this file and set it as desktop background
+                                const sig = await puter.fs.sign(window.host_app_uid ?? null, { uid: options.uid, action: 'read' });
+                                const url = sig?.read_url ?? sig?.url;
+                                if(url){
+                                    // Immediately update the UI
+                                    window.set_desktop_background({ url: url, fit: 'cover' });
+
+                                    // Persist the preference server-side
+                                    try{
+                                        $.ajax({
+                                            url: window.api_origin + "/set-desktop-bg",
+                                            type: 'POST',
+                                            data: JSON.stringify({ url: url, fit: 'cover' }),
+                                            async: true,
+                                            contentType: "application/json",
+                                            headers: {
+                                                "Authorization": "Bearer "+window.auth_token
+                                            },
+                                            statusCode: {
+                                                401: function () { window.logout(); }
+                                            },
+                                        })
+                                    }catch(e){
+                                        // non-fatal
+                                        console.warn('Failed to persist desktop background', e);
+                                    }
+                                }
+                            }catch(err){
+                                console.error('Failed to set desktop background', err);
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                // ignore any error computing extension
+            }
+            // -------------------------------------------
             // Zip
             // -------------------------------------------
             if(!is_trash && !is_trashed && !$(el_item).attr('data-path').endsWith('.zip')){

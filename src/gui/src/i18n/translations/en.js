@@ -103,6 +103,7 @@ const en = {
         descending: 'Descending',
         desktop: 'Desktop',
         desktop_background_fit: "Fit",
+    set_as_desktop_background: 'Set as Desktop Background',
         developers: "Developers",
         dir_published_as_website: `%strong% has been published to:`,
         disable_2fa: 'Disable 2FA',
