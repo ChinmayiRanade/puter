@@ -1248,6 +1248,20 @@ function UIItem(options){
                 });
             }
             // -------------------------------------------
+            // Duplicate (creates a copy in the same folder)
+            // -------------------------------------------
+            if(!is_trashed && !is_trash && $(el_item).attr('data-is_dir') === '0' && $(el_item).attr('data-immutable') === '0'){
+                menu_items.push({
+                    html: i18n('duplicate'),
+                    onClick: function(){
+                        // Use existing copy helper to duplicate into same directory
+                        const src_path = $(el_item).attr('data-path');
+                        const dest_dir = path.dirname(src_path);
+                        window.copy_items([el_item], dest_dir);
+                    }
+                });
+            }
+            // -------------------------------------------
             // Paste Into Folder
             // -------------------------------------------
             if($(el_item).attr('data-is_dir') === '1' && !is_trashed && !is_trash){

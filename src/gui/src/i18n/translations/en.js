@@ -77,6 +77,7 @@ const en = {
         contain: 'Contain',
         continue: "Continue",
         copy: 'Copy',
+        duplicate: 'Duplicate',
         copy_link: "Copy Link",
         copying: "Copying",
         copying_file: "Copying %%",
