@@ -3336,7 +3336,22 @@ window.update_explorer_footer_selected_items_count = function(el_window){
     let item_count = $(el_window).find('.item-selected').length;
     if(item_count > 0){
         $(el_window).find('.explorer-footer-seperator, .explorer-footer-selected-items-count').show();
-        $(el_window).find('.explorer-footer .explorer-footer-selected-items-count').html(item_count + ` ${i18n('item')}` + (item_count == 0 || item_count > 1 ? `${i18n('plural_suffix')}` : '') + ` ${i18n('selected')}`);
+        // Calculate total size of selected non-directory items. Folders count towards the
+        // item count but are not included in the byte total (simplified behavior).
+        let total_bytes = 0;
+        $(el_window).find('.item-selected').each(function(){
+            const is_dir = $(this).attr('data-is_dir') === '1';
+            if(!is_dir){
+                const raw_size = $(this).attr('data-size');
+                const size_num = parseInt(raw_size) || 0;
+                total_bytes += size_num;
+            }
+        });
+
+        const size_display = window.byte_format(total_bytes);
+        $(el_window).find('.explorer-footer .explorer-footer-selected-items-count').html(
+            item_count + ` ${i18n('item')}` + (item_count == 0 || item_count > 1 ? `${i18n('plural_suffix')}` : '') + ` ${i18n('selected')}` + ` • ` + size_display
+        );
     }else{
         $(el_window).find('.explorer-footer-seperator, .explorer-footer-selected-items-count').hide();
     }
