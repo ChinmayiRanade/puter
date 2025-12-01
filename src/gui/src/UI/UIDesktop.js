@@ -1264,22 +1264,55 @@ async function UIDesktop(options){
     })  
 
     // Paste handler: if clipboard contains a URL, create a .weblink on the desktop
-    $(el_desktop).on('paste', async function(e){
+    $(document).on('paste', async function(e){
+        // Only handle paste when not inside an input/textarea
+        const $target = $(e.target);
+        if($target.is('input, textarea, [contenteditable="true"]')){
+            return; // Let normal paste behavior happen
+        }
+        
+        // Check if we're pasting on the desktop
+        const $desktop = $('.desktop.item-container');
+        if(!$desktop.length) return;
+        
+        // Don't handle paste if we're focused inside a window (unless it's a desktop window)
+        const $activeWindow = $(document.activeElement).closest('.window');
+        if($activeWindow.length > 0){
+            // Allow if the window is showing the desktop path
+            const windowPath = $activeWindow.attr('data-path');
+            if(windowPath && windowPath !== window.desktop_path){
+                return;
+            }
+        }
+    
         try{
-            // try clipboardData first
             const clipboardEvent = e.originalEvent || e;
             let text = '';
+            
+            // Try clipboardData first (synchronous, more reliable)
             if(clipboardEvent.clipboardData && clipboardEvent.clipboardData.getData){
-                text = clipboardEvent.clipboardData.getData('text') || '';
+                text = clipboardEvent.clipboardData.getData('text/plain') || 
+                       clipboardEvent.clipboardData.getData('text') || '';
             }
+            
+            // Fallback to async clipboard API
             if(!text && navigator.clipboard && navigator.clipboard.readText){
-                text = await navigator.clipboard.readText().catch(()=>'');
+                try {
+                    text = await navigator.clipboard.readText();
+                } catch(clipErr) {
+                    console.log('Clipboard read failed:', clipErr);
+                }
             }
+            
             text = (text || '').trim();
             if(!text) return;
-
+    
+            // Check if it's a URL
             if(/^https?:\/\//i.test(text)){
-                // derive filename from hostname
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Derive filename from hostname
                 let filename;
                 try{
                     const u = new URL(text);
@@ -1287,11 +1320,16 @@ async function UIDesktop(options){
                 }catch(err){
                     filename = 'New Link.weblink';
                 }
-
-                window.create_file({dirname: window.desktop_path, append_to_element: el_desktop, name: filename, content: text});
+    
+                window.create_file({
+                    dirname: window.desktop_path, 
+                    append_to_element: $desktop.get(0), 
+                    name: filename, 
+                    content: text
+                });
             }
         }catch(err){
-            console.error(err);
+            console.error('Paste handler error:', err);
         }
     });
 

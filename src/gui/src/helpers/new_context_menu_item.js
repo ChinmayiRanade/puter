@@ -45,7 +45,7 @@ const new_context_menu_item = function(dirname, append_to_element){
             html: i18n('new_link') || 'New Link',
             icon: `<img src="${html_encode(window.icons['link.svg'])}" class="ctx-item-icon">`,
             onClick: async function() {
-                const url = await UIPrompt({ message: i18n('enter_url') || 'Enter URL', placeholder: 'https://example.com' });
+                const url = await UIPrompt({ message: 'Enter URL', placeholder: 'http:// or https://' });
                 if(!url) return;
                 if(!/^https?:\/\//i.test(url)){
                     await UIAlert(i18n('url_must_start_with_http') || 'URL must start with http:// or https://');
