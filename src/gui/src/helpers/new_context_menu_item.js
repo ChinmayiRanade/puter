@@ -42,7 +42,7 @@ const new_context_menu_item = function(dirname, append_to_element){
         },
         // New Link
         {
-            html: i18n('new_link') || 'New Link',
+            html: 'New Link',
             icon: `<img src="${html_encode(window.icons['link.svg'])}" class="ctx-item-icon">`,
             onClick: async function() {
                 const url = await UIPrompt({ message: 'Enter URL', placeholder: 'http:// or https://' });
