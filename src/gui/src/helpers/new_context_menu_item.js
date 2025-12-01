@@ -26,6 +26,9 @@
  * @returns {Object} The context menu item object
  */
 
+import UIPrompt from '../UI/UIPrompt.js';
+import UIAlert from '../UI/UIAlert.js';
+
 const new_context_menu_item = function(dirname, append_to_element){
     
     const baseItems = [
@@ -36,6 +39,29 @@ const new_context_menu_item = function(dirname, append_to_element){
             onClick: function() {
                 window.create_folder(dirname, append_to_element);
             },
+        },
+        // New Link
+        {
+            html: 'New Link',
+            icon: `<img src="${html_encode(window.icons['link.svg'])}" class="ctx-item-icon">`,
+            onClick: async function() {
+                const url = await UIPrompt({ message: 'Enter URL', placeholder: 'http:// or https://' });
+                if(!url) return;
+                if(!/^https?:\/\//i.test(url)){
+                    await UIAlert(i18n('url_must_start_with_http') || 'URL must start with http:// or https://');
+                    return;
+                }
+
+                let filename;
+                try{
+                    const u = new URL(url);
+                    filename = `${u.hostname}.weblink`;
+                }catch(e){
+                    filename = `New Link.weblink`;
+                }
+
+                window.create_file({dirname: dirname, append_to_element: append_to_element, name: filename, content: url});
+            }
         },
         // divider
         '-',

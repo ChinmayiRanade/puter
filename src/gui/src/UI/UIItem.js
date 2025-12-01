@@ -540,9 +540,39 @@ function UIItem(options){
 
             if($(e.target).hasClass('item-name-editor'))
                 return false;
-    
+
+            // If this is a web link shortcut file, open its URL directly
+            const item_path = $(el_item).attr('data-path') ?? '';
+            if(!options.is_dir && item_path.toLowerCase().endsWith('.weblink')){
+                try{
+                    const content = await puter.fs.read(item_path);
+        
+        // puter.fs.read() returns a Blob, so we need to convert it to text
+                    let url = '';
+                    if(content instanceof Blob){
+                        url = (await content.text()).trim();
+                    } else if(typeof content === 'string'){
+                        url = content.trim();
+                    } else if(content && typeof content.text === 'function'){
+                        url = (await content.text()).trim();
+                    } else {
+                        url = String(content || '').trim();
+                    }
+        
+                    if(url && /^https?:\/\//i.test(url)){
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    }else{
+                        await UIAlert(i18n('invalid_url') || 'Invalid URL');
+                    }
+                }catch(err){
+                    console.error('Error opening weblink:', err);
+                    await UIAlert(err.message ?? String(err));
+                }
+                return;
+            }
+
             open_item({
-                item: el_item, 
+                item: el_item,
                 new_window: e.metaKey || e.ctrlKey,
             });
         });
