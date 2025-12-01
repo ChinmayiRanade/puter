@@ -540,9 +540,26 @@ function UIItem(options){
 
             if($(e.target).hasClass('item-name-editor'))
                 return false;
-    
+
+            // If this is a web link shortcut file, open its URL directly
+            const item_path = $(el_item).attr('data-path') ?? '';
+            if(!options.is_dir && item_path.toLowerCase().endsWith('.weblink')){
+                try{
+                    const content = await puter.fs.read(item_path);
+                    const url = (typeof content === 'string') ? content.trim() : (content?.toString?.() ?? '').trim();
+                    if(url && /^https?:\/\//i.test(url)){
+                        window.open(url, '_blank', 'noopener,noreferrer');
+                    }else{
+                        await UIAlert(i18n('invalid_url') || 'Invalid URL');
+                    }
+                }catch(err){
+                    await UIAlert(err.message ?? err);
+                }
+                return;
+            }
+
             open_item({
-                item: el_item, 
+                item: el_item,
                 new_window: e.metaKey || e.ctrlKey,
             });
         });

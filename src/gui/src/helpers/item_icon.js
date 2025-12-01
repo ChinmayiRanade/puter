@@ -114,6 +114,10 @@ const item_icon = async (fsentry)=>{
     else if(fsentry.name.toLowerCase().endsWith('.docx')){
         return {image: window.icons['file-docx.svg'], type: 'icon'};
     }
+    // *.weblink (web link shortcuts)
+    else if(fsentry.name.toLowerCase().endsWith('.weblink')){
+        return {image: window.icons['link.svg'], type: 'icon'};
+    }
     // *.exe
     else if(fsentry.name.toLowerCase().endsWith('.exe')){
         return {image: window.icons['file-exe.svg'], type: 'icon'};

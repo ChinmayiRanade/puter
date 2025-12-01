@@ -1263,6 +1263,38 @@ async function UIDesktop(options){
         $('.window-menubar-global').hide();
     })  
 
+    // Paste handler: if clipboard contains a URL, create a .weblink on the desktop
+    $(el_desktop).on('paste', async function(e){
+        try{
+            // try clipboardData first
+            const clipboardEvent = e.originalEvent || e;
+            let text = '';
+            if(clipboardEvent.clipboardData && clipboardEvent.clipboardData.getData){
+                text = clipboardEvent.clipboardData.getData('text') || '';
+            }
+            if(!text && navigator.clipboard && navigator.clipboard.readText){
+                text = await navigator.clipboard.readText().catch(()=>'');
+            }
+            text = (text || '').trim();
+            if(!text) return;
+
+            if(/^https?:\/\//i.test(text)){
+                // derive filename from hostname
+                let filename;
+                try{
+                    const u = new URL(text);
+                    filename = `${u.hostname}.weblink`;
+                }catch(err){
+                    filename = 'New Link.weblink';
+                }
+
+                window.create_file({dirname: window.desktop_path, append_to_element: el_desktop, name: filename, content: text});
+            }
+        }catch(err){
+            console.error(err);
+        }
+    });
+
     function display_ct() {
         var x = new Date()
         var ampm = x.getHours( ) >= 12 ? ' PM' : ' AM';
