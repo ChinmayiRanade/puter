@@ -1231,6 +1231,11 @@ window.initgui = async function(options){
             // is using the popover API to show a popover, the popover will be closed if the window is activated
             if($(e.target).hasClass('popover') || $(e.target).parents('.popover').length > 0)
                 return;
+            // if close, minimize, or scale button clicked, don't activate window - just let the button handler execute
+            if($(e.target).hasClass('window-close-btn') || $(e.target).closest('.window-close-btn').length > 0 ||
+               $(e.target).hasClass('window-minimize-btn') || $(e.target).closest('.window-minimize-btn').length > 0 ||
+               $(e.target).hasClass('window-scale-btn') || $(e.target).closest('.window-scale-btn').length > 0)
+                return;
             $(window.mouseover_window).focusWindow(e);
         }
     })
